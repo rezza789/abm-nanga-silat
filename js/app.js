@@ -66,6 +66,31 @@ function tampilkanPesanLogin(pesan) {
   el.classList.remove("tersembunyi");
 }
 
+function tampilkanTombolDaftar(visibel) {
+  $("tombol-daftar").classList.toggle("tersembunyi", !visibel);
+  if (visibel) {
+    $("login-error").classList.add("tersembunyi");
+  }
+}
+
+async function cobaDaftar() {
+  try {
+    await callApi("daftar", {});
+    $("daftar-catatan").textContent =
+      "Pendaftaran terkirim. Admin akan mengaktifkan akun Anda setelah memeriksa email permintaannya.";
+    $("daftar-catatan").classList.remove("tersembunyi");
+    $("login-error").classList.add("tersembunyi");
+    tampilkanTombolDaftar(false);
+  } catch (err) {
+    if (err.jaringan) {
+      $("daftar-catatan").textContent = "Tidak ada sinyal. Coba lagi saat online.";
+    } else {
+      $("daftar-catatan").textContent = err.message || "Terjadi kesalahan saat mendaftar.";
+    }
+    $("daftar-catatan").classList.remove("tersembunyi");
+  }
+}
+
 function simpanUser(data) {
   state.user = data;
   try {
@@ -898,12 +923,21 @@ async function cobaLogin() {
 window.onLoginCallback = async function () {
   $("login-error").classList.add("tersembunyi");
   $("login-error").textContent = "";
+  tampilkanTombolDaftar(false);
+  $("daftar-catatan").classList.add("tersembunyi");
+  $("daftar-catatan").textContent = "";
   try {
     await cobaLogin();
   } catch (err) {
     var pesan = err.message || "";
-    if (/tidak terdaftar|tidak dikenal|not registered|belum terdaftar/i.test(pesan)) {
-      tampilkanPesanLogin("Akun tidak terdaftar, hubungi admin kantor.");
+    if (/tidak terdaftar|tidak dikenal|not registered|belum terdaftar|EMAIL TIDAK TERDAFTAR/i.test(pesan)) {
+      tampilkanPesanLogin("Akun belum terdaftar.");
+      tampilkanTombolDaftar(true);
+      $("daftar-catatan").classList.add("tersembunyi");
+      $("daftar-catatan").textContent = "";
+    } else if (/MENUNGGU/i.test(pesan)) {
+      tampilkanPesanLogin("Pendaftaran Anda menunggu persetujuan admin kantor.");
+      tampilkanTombolDaftar(false);
     } else if (err.jaringan) {
       var cacheUser = bacaUserCache();
       if (cacheUser && cacheUser.email) {
@@ -1000,6 +1034,7 @@ window.addEventListener("DOMContentLoaded", function () {
   $("tombol-kirim-sekarang").addEventListener("click", function () {
     flushAntrean();
   });
+  $("tombol-daftar").addEventListener("click", cobaDaftar);
 
   init();
 });
