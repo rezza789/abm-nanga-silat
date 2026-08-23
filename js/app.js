@@ -158,7 +158,8 @@ var MENU = [
   { id: "bbm", label: "BBM", deskripsi: "Masuk, keluar, beli langsung" },
   { id: "hm", label: "HM Operator", deskripsi: "Jam kerja alat" },
   { id: "pengeluaran", label: "Pengeluaran", deskripsi: "Sparepart & operasional" },
-  { id: "kas", label: "Kas", deskripsi: "Uang kas lapangan" }
+  { id: "kas", label: "Kas", deskripsi: "Uang kas lapangan" },
+  { id: "dashboard", label: "Dashboard", deskripsi: "Rekap, margin, BAPP, gaji" }
 ];
 
 var FORM = {
@@ -477,6 +478,11 @@ var FORM = {
 // ---------- RENDER FORM ----------
 
 function tampilkanForm(idForm) {
+  if (idForm === "dashboard") {
+    tampilkanDashboard();
+    return;
+  }
+
   var def = FORM[idForm];
   if (!def) {
     return;
